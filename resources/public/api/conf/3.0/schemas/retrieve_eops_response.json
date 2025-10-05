@@ -1,5 +1,4 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Retrieve End Of Period Obligations",
   "description": "An array to return one or more businesses and their obligations details.",
   "type": "object",
