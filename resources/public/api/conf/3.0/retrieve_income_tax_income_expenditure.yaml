@@ -50,11 +50,9 @@ get:
             $ref: './schemas/retrieve_periodic_obligations_response.json'
           examples:
             "Non-cumulative response for TY 2024-25 and before":
-              value:
-                $ref: './examples/retrieve_non-cumulative_periodic_obligations.json'
+              externalValue: './examples/retrieve_non-cumulative_periodic_obligations.json'
             "Cumulative response for TY 2025-26 and after":
-              value:
-                $ref: './examples/retrieve_cumulative_periodic_obligations.json'
+              externalValue: './examples/retrieve_cumulative_periodic_obligations.json'
 
     "400":
       description: Bad request
