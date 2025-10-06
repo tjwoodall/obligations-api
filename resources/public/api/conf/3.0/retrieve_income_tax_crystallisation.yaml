@@ -59,8 +59,7 @@ get:
           examples:
             example-1:
               description: Default
-              value:
-                $ref: './examples/retrieve_crystallisation_obligations.json'
+              externalValue: './examples/retrieve_crystallisation_obligations.json'
 
     "400":
       description: Bad request
