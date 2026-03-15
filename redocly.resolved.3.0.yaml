@@ -1,0 +1,886 @@
+openapi: 3.0.3
+info:
+  version: '3.0'
+  title: Obligations (MTD)
+  description: |
+    # Send fraud prevention data
+    HMRC monitors transactions to help protect your customers' confidential data from criminals and fraudsters. 
+
+    <div class="govuk-warning-text warning-icon-fix">
+      <span class="govuk-warning-text__icon warning-icon-ui-fix" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text">
+        <span class="govuk-warning-text__assistive">Warning</span>
+        You are required by law to submit header data for this API. This includes all associated APIs and endpoints.
+      </strong>
+    </div>
+
+    [Check the data you need to send](/guides/fraud-prevention/). You can also use the [Test API](/api-documentation/docs/api/service/txm-fph-validator-api/1.0) during initial development and as part of your quality assurance checks.
+
+    # Changelog
+    You can find the changelog in the [income-tax-mtd-changelog](https://github.com/hmrc/income-tax-mtd-changelog/#readme) GitHub wiki.
+
+
+    # Support
+
+    * Direct reports of bugs or errors in Production or Sandbox code, or queries about HMRC business functionality (such as how a specific field is used by HMRC or why it is needed) to the [Software Development Support Team (SDST)](https://developer.service.hmrc.gov.uk/developer/support).
+    * Send queries or feedback related to the design of the APIs (including recommended changes) using the [income-tax-mtd-changelog](https://github.com/hmrc/income-tax-mtd-changelog/issues) GitHub page.
+    * <a href="/contact/report-technical-problem?newTab=true&service=api-documentation-frontend" target="_blank">Is this page not working properly? (opens in new tab)</a>
+servers:
+  - url: https://test-api.service.hmrc.gov.uk
+    description: Sandbox
+  - url: https://api.service.hmrc.gov.uk
+    description: Production
+paths:
+  /obligations/details/{nino}/income-and-expenditure:
+    get:
+      summary: Retrieve Income Tax (Self Assessment) Income and Expenditure Obligations
+      description: |
+        This endpoint allows a developer to retrieve obligations for a user's business income sources. The account identifier (National Insurance number) must be provided.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)      | Scenario                                                                               |
+        |---------------------------------------|----------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                         | Simulates a success response.                                                          |
+        | OPEN                                  | Simulates a success response with an open obligation. <br/><br/>For a response with a self-employment business, use businessId: <br/> • XBIS12345678903 <br/>For a response with a UK property business, use businessId: <br/> • XPIS12345678903 <br/>For a response with a foreign property business, use businessId: <br/> • XFIS12345678903 |
+        | FULFILLED                             | Simulates a success response with a fulfilled obligation. <br/><br/>For a response with a self-employment business, use businessId: <br/> • XBIS12345678902 <br/>For a response with a UK property business, use businessId: <br/> • XPIS12345678902 <br/>For a response with a foreign property business, use businessId: <br/> • XFIS12345678902 |
+        | INSOLVENT_TRADER                      | Simulates a scenario where the remote endpoint indicates that the trader is insolvent. |
+        | NOT_FOUND                             | Simulates a scenario where no data is found.                                           |
+        | NO_OBLIGATIONS_FOUND                  | Simulates a scenario where no obligations are found.                                   |
+        | DYNAMIC                               | The following response values will change to correspond to the values submitted in the request: <br/> • fromDate <br/> • toDate <br/> • status (open or fulfilled) <br/><br/>For a response with a self-employment business, use businessId: <br/> • XBIS12345678901 <br/>For a response with a UK property business, use businessId: <br/> • XPIS12345678901 <br/>For a response with a foreign property business, use businessId: <br/> • XFIS12345678901 |
+        | CUMULATIVE                            | Simulates a success response with cumulative quarterly updates.                        |
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: &ref_6
+            type: string
+            example: TC663795B
+          required: true
+        - name: typeOfBusiness
+          in: query
+          description: |
+            The type of business whose obligations are to be returned.
+            If the type is not specified the default is to return obligations for all businesses.
+            The type must be provided if "businessId" is provided.
+          schema:
+            type: string
+            enum:
+              - self-employment
+              - uk-property
+              - foreign-property
+            example: self-employment
+          required: false
+        - name: businessId
+          in: query
+          description: |
+            The unique identifier for the business whose obligations are to be returned.
+          schema:
+            type: string
+            pattern: ^X[a-zA-Z0-9]{1}IS[0-9]{11}$
+            example: XAIS12345678901
+          required: false
+        - name: fromDate
+          in: query
+          description: |
+            The start date of the range to filter obligations in the format YYYY-MM-DD.
+            Mandatory if the “to” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+          schema:
+            type: string
+            example: '2018-04-06'
+          required: false
+        - name: toDate
+          in: query
+          description: |
+            The end date of the range to filter obligations in the format YYYY-MM-DD.
+            Mandatory if the “from” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+          schema:
+            type: string
+            example: '2019-04-05'
+          required: false
+        - name: status
+          in: query
+          description: |
+            Status of the obligations to return.
+
+            Accepted values are ‘open’ and ‘fulfilled’. If no status is supplied, both open and fulfilled obligations are returned.
+          schema: &ref_7
+            type: string
+            example: open
+          required: false
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: &ref_8
+            type: string
+            enum:
+              - application/vnd.hmrc.3.0+json
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
+          schema: &ref_9
+            type: string
+            example: Bearer bb7fed3fe10dd235a2ccda3d50fb
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: &ref_10
+            type: string
+            example: '-'
+          required: false
+      security:
+        - User-Restricted:
+            - read:self-assessment
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: &ref_0
+                type: string
+                example: c75f40a6-a3df-4429-a697-471eeec46435
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: &ref_1
+                type: string
+                example: Sun, 01 Jan 2023 23:59:59 GMT
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: &ref_2
+                type: string
+                example: Sun, 02 Jul 2023 23:59:59 GMT
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: &ref_3
+                type: string
+                example: https://developer.service.hmrc.gov.uk/api-documentation/docs/api/service/obligations-api
+              required: false
+          content:
+            application/json:
+              schema:
+                $schema: http://json-schema.org/draft-04/schema#
+                title: Retrieve obligations for a user's business income sources
+                description: An array to return one or more businesses and their obligations details.
+                type: object
+                properties:
+                  obligations:
+                    type: array
+                    description: An array to return one or more businesses and their obligations details.
+                    items:
+                      type: object
+                      properties:
+                        typeOfBusiness:
+                          description: Identifies the type of business income source. One of "self-employment", "uk-property" or "foreign-property".
+                          type: string
+                          example: self-employment
+                        businessId:
+                          description: The unique identifier for this business income source.
+                          type: string
+                          example: XAIS12345678910
+                          pattern: ^X[a-zA-Z0-9]{1}IS[0-9]{11}$
+                        obligationDetails:
+                          type: array
+                          description: An array holding the obligations for the business income source.
+                          items:
+                            type: object
+                            properties:
+                              periodStartDate:
+                                description: The start date of this obligation period in the format YYYY-MM-DD.
+                                type: string
+                                example: '2018-04-06'
+                              periodEndDate:
+                                description: The end date of this obligation period in the format YYYY-MM-DD.
+                                type: string
+                                example: '2019-04-05'
+                              dueDate:
+                                description: The due date for this obligation period in the format YYYY-MM-DD.
+                                type: string
+                                example: '2018-04-06'
+                              status:
+                                description: 'The status of the obligation, one of: "open" or "fulfilled".'
+                                type: string
+                                example: open
+                              receivedDate:
+                                description: The date this obligation period was fulfilled in the format YYYY-MM-DD.
+                                type: string
+                                example: '2019-12-15'
+                            required:
+                              - periodStartDate
+                              - periodEndDate
+                              - dueDate
+                              - status
+                            additionalProperties: false
+                      required:
+                        - typeOfBusiness
+                        - businessId
+                        - obligationDetails
+                      additionalProperties: false
+                required:
+                  - obligations
+                additionalProperties: false
+              examples:
+                Non-cumulative response for TY 2024-25 and before:
+                  value:
+                    obligations:
+                      - typeOfBusiness: self-employment
+                        businessId: XAIS12345678910
+                        obligationDetails:
+                          - periodStartDate: '2019-04-06'
+                            periodEndDate: '2019-07-05'
+                            dueDate: '2019-08-05'
+                            receivedDate: '2019-08-01'
+                            status: fulfilled
+                          - periodStartDate: '2019-07-06'
+                            periodEndDate: '2019-10-05'
+                            dueDate: '2019-11-05'
+                            receivedDate: '2019-11-01'
+                            status: fulfilled
+                          - periodStartDate: '2019-10-06'
+                            periodEndDate: '2020-01-05'
+                            dueDate: '2020-02-05'
+                            receivedDate: '2020-02-01'
+                            status: fulfilled
+                          - periodStartDate: '2020-01-06'
+                            periodEndDate: '2020-04-05'
+                            dueDate: '2020-05-05'
+                            status: open
+                Cumulative response for TY 2025-26:
+                  value:
+                    obligations:
+                      - typeOfBusiness: self-employment
+                        businessId: XAIS12345678910
+                        obligationDetails:
+                          - periodStartDate: '2025-04-06'
+                            periodEndDate: '2025-07-05'
+                            dueDate: '2025-08-05'
+                            receivedDate: '2025-08-01'
+                            status: fulfilled
+                          - periodStartDate: '2025-04-06'
+                            periodEndDate: '2025-10-05'
+                            dueDate: '2025-11-05'
+                            receivedDate: '2025-11-01'
+                            status: fulfilled
+                          - periodStartDate: '2025-04-06'
+                            periodEndDate: '2026-01-05'
+                            dueDate: '2026-02-05'
+                            receivedDate: '2026-02-01'
+                            status: fulfilled
+                          - periodStartDate: '2025-04-06'
+                            periodEndDate: '2026-04-05'
+                            dueDate: '2026-05-05'
+                            status: open
+                Cumulative response for TY 2026-27 and after:
+                  value:
+                    obligations:
+                      - typeOfBusiness: self-employment
+                        businessId: XAIS12345678910
+                        obligationDetails:
+                          - periodStartDate: '2026-04-06'
+                            periodEndDate: '2026-07-05'
+                            dueDate: '2026-08-07'
+                            receivedDate: '2026-08-01'
+                            status: fulfilled
+                          - periodStartDate: '2026-04-06'
+                            periodEndDate: '2026-10-05'
+                            dueDate: '2026-11-07'
+                            receivedDate: '2026-11-01'
+                            status: fulfilled
+                          - periodStartDate: '2026-04-06'
+                            periodEndDate: '2027-01-05'
+                            dueDate: '2027-02-07'
+                            receivedDate: '2027-02-01'
+                            status: fulfilled
+                          - periodStartDate: '2026-04-06'
+                            periodEndDate: '2027-04-05'
+                            dueDate: '2027-05-07'
+                            status: open
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: &ref_4
+                  code:
+                    description: The error code
+                    type: string
+                  message:
+                    description: The error message
+                    type: string
+                required: &ref_5
+                  - code
+              examples:
+                FORMAT_NINO:
+                  description: |
+                    The format of the supplied NINO field is not valid.
+                  value: &ref_11
+                    code: FORMAT_NINO
+                    message: The provided NINO is invalid
+                FORMAT_TYPE_OF_BUSINESS:
+                  description: |
+                    The format of the type of business field is not valid.
+                  value:
+                    code: FORMAT_TYPE_OF_BUSINESS
+                    message: The provided typeOfBusiness field is invalid
+                FORMAT_BUSINESS_ID:
+                  description: |
+                    The format of the business ID field is not valid.
+                  value:
+                    code: FORMAT_BUSINESS_ID
+                    message: The provided businessId is invalid
+                FORMAT_FROM_DATE:
+                  description: |
+                    The format of the From date field is not valid.
+                  value:
+                    code: FORMAT_FROM_DATE
+                    message: The provided fromDate is invalid
+                FORMAT_TO_DATE:
+                  description: |
+                    The format of the To date field is not valid.
+                  value:
+                    code: FORMAT_TO_DATE
+                    message: The provided toDate is invalid
+                FORMAT_STATUS:
+                  description: |
+                    The format of the status field is not valid.
+                  value: &ref_12
+                    code: FORMAT_STATUS
+                    message: The provided status is invalid
+                MISSING_FROM_DATE:
+                  description: |
+                    The From date parameter is missing.
+                  value:
+                    code: MISSING_FROM_DATE
+                    message: The From date parameter is missing
+                MISSING_TO_DATE:
+                  description: |
+                    The To date parameter is missing.
+                  value:
+                    code: MISSING_TO_DATE
+                    message: The To date parameter is missing
+                RANGE_TO_DATE_BEFORE_FROM_DATE:
+                  description: |
+                    The To date is before the From date.
+                  value:
+                    code: RANGE_TO_DATE_BEFORE_FROM_DATE
+                    message: The To date must be after the From date
+                MISSING_TYPE_OF_BUSINESS:
+                  description: |
+                    The Type of Business Parameter is missing.
+                  value:
+                    code: MISSING_TYPE_OF_BUSINESS
+                    message: The type of business query parameter must be provided when an incomeSourceId is supplied
+                RULE_DATE_RANGE_INVALID:
+                  description: |
+                    The date range is longer than 366 days.
+                  value:
+                    code: RULE_DATE_RANGE_INVALID
+                    message: The specified date range is invalid
+                RULE_FROM_DATE_NOT_SUPPORTED:
+                  description: |
+                    The From date specified is before 2018-04-06.
+                  value:
+                    code: RULE_FROM_DATE_NOT_SUPPORTED
+                    message: The specified From date is not supported as too early
+                RULE_INSOLVENT_TRADER:
+                  description: |
+                    The request could not be completed as it relates to an insolvent trader, which are not supported by this API.
+                  value: &ref_13
+                    code: RULE_INSOLVENT_TRADER
+                    message: The remote endpoint has indicated that the Trader is insolvent
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available sandbox data. 
+                    Check that the supplied Gov-Test-Scenario is correct for this endpoint version. 
+                    This error will only be returned in the sandbox environment.
+                  value: &ref_14
+                    code: RULE_INCORRECT_GOV_TEST_SCENARIO
+                    message: The supplied Gov-Test-Scenario is not valid
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client or agent is not authorised. This is because: the client is not subscribed to MTD, the agent is not subscribed to Agent Services, or the client has not authorised the agent to act on their behalf.
+                  value: &ref_15
+                    code: CLIENT_OR_AGENT_NOT_AUTHORISED
+                    message: The client or agent is not authorised
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: |
+                    The supplied income source could not be found.
+                  value: &ref_16
+                    code: MATCHING_RESOURCE_NOT_FOUND
+                    message: Matching resource not found
+                NO_OBLIGATIONS_FOUND:
+                  description: |
+                    No obligations found using this filter.
+                  value: &ref_17
+                    code: NO_OBLIGATIONS_FOUND
+                    message: No obligations found using this filter
+  /obligations/details/{nino}/crystallisation:
+    get:
+      summary: Retrieve Income Tax (Self Assessment) Final Declaration Obligations
+      description: |
+        This endpoint allows a developer to retrieve the final declaration (previously known as crystallisation) obligations for a customer’s Income Tax account. The account identifier (National Insurance number) must be provided.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)      | Scenario                                                                               |
+        |---------------------------------------|----------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                         | Simulates a success response with an open obligation.                                  |
+        | MULTIPLE                              | Simulates a success response with multiple obligations.                                |
+        | INSOLVENT_TRADER                      | Simulates a scenario where the remote endpoint indicates that the trader is insolvent. |
+        | NOT_FOUND                             | Simulates a scenario where no data is found.                                           |
+        | DYNAMIC                               | The following response values will change to correspond to the values submitted in the request: <br/> • periodStartDate <br/> • periodEndDate <br/> • dueDate <br/> • receivedDate|
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_6
+          required: true
+        - name: taxYear
+          in: query
+          description: |
+            The tax year the data applies to.
+
+            If a tax year is not specified, returns all obligations starting from 4 years before the current tax year.
+
+            For example, if current tax year is 2023-24 and no tax year is specified, all obligations from 2019-20 to 2023-24 are returned.
+
+            The earliest allowable tax year is 2017-18.
+          schema:
+            type: string
+            example: 2022-23
+          required: false
+        - name: status
+          in: query
+          description: |
+            Status of the obligations to return.
+
+            Accepted values are ‘open’ and ‘fulfilled’. If no status is supplied, both open and fulfilled obligations are returned.
+          schema: *ref_7
+          required: false
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_8
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
+          schema: *ref_9
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_10
+          required: false
+      security:
+        - User-Restricted:
+            - read:self-assessment
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                $schema: http://json-schema.org/draft-04/schema#
+                title: Retrieve Income Tax Crystallisation Obligations
+                description: An array to return one or more businesses and their obligations details.
+                type: object
+                properties:
+                  obligations:
+                    type: array
+                    description: An array to return one or more final declaration obligation details.
+                    items:
+                      type: object
+                      properties:
+                        periodStartDate:
+                          description: The start date of this obligation period. Date in the format YYYY-MM-DD.
+                          type: string
+                          example: '2018-04-06'
+                        periodEndDate:
+                          description: The end date of this obligation period. Date in the format YYYY-MM-DD.
+                          type: string
+                          example: '2019-04-05'
+                        dueDate:
+                          description: The due date for this obligation period. Date in the format YYYY-MM-DD.
+                          type: string
+                          example: '2020-01-31'
+                        status:
+                          description: 'The status of the obligation, one of: `open` or `fulfilled`.'
+                          type: string
+                          enum:
+                            - open
+                            - fulfilled
+                        receivedDate:
+                          description: The date this obligation period was fulfilled. Date in the format YYYY-MM-DD.
+                          type: string
+                          example: '2019-12-15'
+                      required:
+                        - periodStartDate
+                        - periodEndDate
+                        - dueDate
+                        - status
+                      additionalProperties: false
+                required:
+                  - obligations
+                additionalProperties: false
+              examples:
+                example-1:
+                  description: Default
+                  value:
+                    obligations:
+                      - periodStartDate: '2018-04-06'
+                        periodEndDate: '2019-04-05'
+                        dueDate: '2020-01-31'
+                        status: fulfilled
+                        receivedDate: '2020-01-25'
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: |
+                    The format of the supplied NINO field is not valid.
+                  value: *ref_11
+                FORMAT_TAX_YEAR:
+                  description: |
+                    The format of the tax year field is not valid.
+                  value:
+                    code: FORMAT_TAX_YEAR
+                    message: The provided tax year is invalid
+                FORMAT_STATUS:
+                  description: |
+                    The format of the status field is not valid.
+                  value: *ref_12
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.  Either the tax year is before the minimum tax year value, or it is after the maximum tax year value.
+                  value:
+                    code: RULE_TAX_YEAR_NOT_SUPPORTED
+                    message: The tax year specified does not lie within the supported range
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: |
+                    Tax year range invalid. A tax year range of one year is required.
+                  value:
+                    code: RULE_TAX_YEAR_RANGE_INVALID
+                    message: A tax year range of one year is required
+                RULE_INSOLVENT_TRADER:
+                  description: |
+                    The request could not be completed as it relates to an insolvent trader, which are not supported by this API.
+                  value: *ref_13
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available sandbox data. 
+                    Check that the supplied Gov-Test-Scenario is correct for this endpoint version. 
+                    This error will only be returned in the sandbox environment.
+                  value: *ref_14
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client or agent is not authorised. This is because: the client is not subscribed to MTD, the agent is not subscribed to Agent Services, or the client has not authorised the agent to act on their behalf.
+                  value: *ref_15
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                URL of the documentation for the API.
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: |
+                    The supplied income source could not be found.
+                  value: *ref_16
+                NO_OBLIGATIONS_FOUND:
+                  description: |
+                    No obligations found using this filter.
+                  value: *ref_17
+components:
+  securitySchemes:
+    User-Restricted:
+      type: oauth2
+      description: HMRC supports OAuth 2.0 for authenticating [User-restricted](https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/user-restricted-endpoints) API requests
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.service.hmrc.gov.uk/oauth/authorize
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
+          scopes:
+            write:self-assessment: Grant write access
+            read:self-assessment: Grant read access
