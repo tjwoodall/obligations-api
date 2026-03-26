@@ -82,6 +82,7 @@ paths:
         description: |
           The start date of the range to filter obligations in the format YYYY-MM-DD.
           Mandatory if the “to” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+          The toDate & fromDate can be a maximum of 366 days apart.
         required: false
         schema:
           type: string
@@ -91,6 +92,7 @@ paths:
         description: |
           The end date of the range to filter obligations in the format YYYY-MM-DD.
           Mandatory if the “from” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+          The toDate & fromDate can be a maximum of 366 days apart.
         required: false
         schema:
           type: string
@@ -1039,6 +1041,7 @@ components:
       description: |
         The start date of the range to filter obligations in the format YYYY-MM-DD.
         Mandatory if the “to” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+        The toDate & fromDate can be a maximum of 366 days apart.
       required: false
       schema:
         type: string
@@ -1049,6 +1052,7 @@ components:
       description: |
         The end date of the range to filter obligations in the format YYYY-MM-DD.
         Mandatory if the “from” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+        The toDate & fromDate can be a maximum of 366 days apart.
       required: false
       schema:
         type: string
