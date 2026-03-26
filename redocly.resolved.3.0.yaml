@@ -87,6 +87,7 @@ paths:
           description: |
             The start date of the range to filter obligations in the format YYYY-MM-DD.
             Mandatory if the “to” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+            The toDate & fromDate can be a maximum of 366 days apart.
           schema:
             type: string
             example: '2018-04-06'
@@ -96,6 +97,7 @@ paths:
           description: |
             The end date of the range to filter obligations in the format YYYY-MM-DD.
             Mandatory if the “from” query parameter is supplied. If the “from” and “to” date parameters are not supplied, the date range will default to a year from today unless the status parameter is set to "open".
+            The toDate & fromDate can be a maximum of 366 days apart.
           schema:
             type: string
             example: '2019-04-05'
@@ -245,79 +247,13 @@ paths:
               examples:
                 Non-cumulative response for TY 2024-25 and before:
                   value:
-                    obligations:
-                      - typeOfBusiness: self-employment
-                        businessId: XAIS12345678910
-                        obligationDetails:
-                          - periodStartDate: '2019-04-06'
-                            periodEndDate: '2019-07-05'
-                            dueDate: '2019-08-05'
-                            receivedDate: '2019-08-01'
-                            status: fulfilled
-                          - periodStartDate: '2019-07-06'
-                            periodEndDate: '2019-10-05'
-                            dueDate: '2019-11-05'
-                            receivedDate: '2019-11-01'
-                            status: fulfilled
-                          - periodStartDate: '2019-10-06'
-                            periodEndDate: '2020-01-05'
-                            dueDate: '2020-02-05'
-                            receivedDate: '2020-02-01'
-                            status: fulfilled
-                          - periodStartDate: '2020-01-06'
-                            periodEndDate: '2020-04-05'
-                            dueDate: '2020-05-05'
-                            status: open
+                    $ref: ./examples/retrieve_non-cumulative_periodic_obligations.json
                 Cumulative response for TY 2025-26:
                   value:
-                    obligations:
-                      - typeOfBusiness: self-employment
-                        businessId: XAIS12345678910
-                        obligationDetails:
-                          - periodStartDate: '2025-04-06'
-                            periodEndDate: '2025-07-05'
-                            dueDate: '2025-08-05'
-                            receivedDate: '2025-08-01'
-                            status: fulfilled
-                          - periodStartDate: '2025-04-06'
-                            periodEndDate: '2025-10-05'
-                            dueDate: '2025-11-05'
-                            receivedDate: '2025-11-01'
-                            status: fulfilled
-                          - periodStartDate: '2025-04-06'
-                            periodEndDate: '2026-01-05'
-                            dueDate: '2026-02-05'
-                            receivedDate: '2026-02-01'
-                            status: fulfilled
-                          - periodStartDate: '2025-04-06'
-                            periodEndDate: '2026-04-05'
-                            dueDate: '2026-05-05'
-                            status: open
+                    $ref: ./examples/retrieve_cumulative_periodic_obligations_ty_25_26.json
                 Cumulative response for TY 2026-27 and after:
                   value:
-                    obligations:
-                      - typeOfBusiness: self-employment
-                        businessId: XAIS12345678910
-                        obligationDetails:
-                          - periodStartDate: '2026-04-06'
-                            periodEndDate: '2026-07-05'
-                            dueDate: '2026-08-07'
-                            receivedDate: '2026-08-01'
-                            status: fulfilled
-                          - periodStartDate: '2026-04-06'
-                            periodEndDate: '2026-10-05'
-                            dueDate: '2026-11-07'
-                            receivedDate: '2026-11-01'
-                            status: fulfilled
-                          - periodStartDate: '2026-04-06'
-                            periodEndDate: '2027-01-05'
-                            dueDate: '2027-02-07'
-                            receivedDate: '2027-02-01'
-                            status: fulfilled
-                          - periodStartDate: '2026-04-06'
-                            periodEndDate: '2027-04-05'
-                            dueDate: '2027-05-07'
-                            status: open
+                    $ref: ./examples/retrieve_cumulative_periodic_obligations_ty_26_27_and_after.json
         '400':
           description: Bad request
           headers:
@@ -697,12 +633,7 @@ paths:
                 example-1:
                   description: Default
                   value:
-                    obligations:
-                      - periodStartDate: '2018-04-06'
-                        periodEndDate: '2019-04-05'
-                        dueDate: '2020-01-31'
-                        status: fulfilled
-                        receivedDate: '2020-01-25'
+                    $ref: ./examples/retrieve_crystallisation_obligations.json
         '400':
           description: Bad request
           headers:
